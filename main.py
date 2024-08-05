@@ -1,6 +1,6 @@
 import pygame
 
-from src.structures import FriendshipGraph, Person
+from src.structures import FriendshipGraph, People
 
 # Game parameters
 WIDTH = 800
@@ -30,10 +30,10 @@ if __name__ == "__main__":
     # Simulation time
     t = 0
     time_step = 1.0e-2  # Mainly used for simplex noise
-    N = 100
+    N = 200
 
     # Initialize people
-    people = [Person() for _ in range(N)]
+    people = People(N)
     friendship_graph = FriendshipGraph(N, establishment_equ_prob_dist=0.01, break_equ_prob_dist=1.414 * 0.75)
 
     ###########################################################################
@@ -53,8 +53,7 @@ if __name__ == "__main__":
         ########################### SIMULATION STEP ##############################
 
         # Update the simulation
-        for person in people:
-            person.random_move(t)
+        people.random_move(t)
 
         friendship_graph.add_random_friendships(people)
         friendship_graph.remove_random_friendships(people)
@@ -69,8 +68,7 @@ if __name__ == "__main__":
         friendship_graph.draw_friendships(people, screen, BLACK, WIDTH, HEIGHT)
 
         # Draw the people
-        for person in people:
-            person.draw(screen, BLUE, WIDTH, HEIGHT)
+        people.draw_people(screen, WIDTH, HEIGHT, 3)
 
         #######################################################################
 
