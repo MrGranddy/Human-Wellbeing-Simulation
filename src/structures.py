@@ -1,5 +1,5 @@
 import random
-from typing import List, Optional
+from typing import List, Tuple, Optional
 import numpy as np
 import opensimplex
 import pygame
@@ -33,7 +33,7 @@ class People:
         wellbeing (np.ndarray): Wellbeing values for each person.
     """
     
-    def __init__(self, num_people: int):
+    def __init__(self, num_people: int, friend_attractiveness: float = 0.0):
         """
         Initialize a collection of people.
 
@@ -41,6 +41,8 @@ class People:
             num_people (int): The number of people in the simulation.
         """
         self.num_people = num_people
+        self.friend_attractiveness = friend_attractiveness
+
         self.x = np.random.rand(num_people)
         self.y = np.random.rand(num_people)
         self.speed_coefficient = np.random.rand(num_people) * (MAX_RANDOM_SPEED - MIN_RANDOM_SPEED) + MIN_RANDOM_SPEED
@@ -76,6 +78,22 @@ class People:
 
         self.x = np.clip(self.x + dx * self.speed_coefficient, 0, 1)
         self.y = np.clip(self.y + dy * self.speed_coefficient, 0, 1)
+
+    def attract_to_friends(self, friendship_graph: "FriendshipGraph"):
+        """Move the friends to each other based on the friendship graph."""
+
+        idxs, jdxs = friendship_graph.get_friendships()
+
+        x_diff = self.x[jdxs] - self.x[idxs]
+        y_diff = self.y[jdxs] - self.y[idxs]
+
+        distance = np.sqrt(x_diff ** 2 + y_diff ** 2)
+
+        dx = self.friend_attractiveness * x_diff / distance
+        dy = self.friend_attractiveness * y_diff / distance
+
+        self.move(dx, dy)
+
 
     def draw_people(self, screen: pygame.Surface, width: int, height: int, radius: int):
         """
@@ -155,17 +173,17 @@ class FriendshipGraph:
         self.graph[people1, people2] = 0
         self.graph[people2, people1] = 0
 
-    def get_friends(self, person: int) -> List[int]:
+    def get_friendships(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Get the list of friends of a person.
-
-        Args:
-            person (int): Index of the person.
+        Get the adjacency matrix of the friendship graph.
 
         Returns:
-            List[int]: List of indices of the friends.
+            np.ndarray: The adjacency matrix of the friendship graph.
         """
-        return np.where(self.graph[person] == 1)[0].tolist()
+
+        idxs, jdxs = np.where(np.triu(self.graph, k=1) == 1)
+
+        return idxs, jdxs
 
     def add_random_friendships(self, people: People):
         """

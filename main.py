@@ -33,7 +33,7 @@ if __name__ == "__main__":
     N = 200
 
     # Initialize people
-    people = People(N)
+    people = People(N, friend_attractiveness=1.e-3)
     friendship_graph = FriendshipGraph(N, establishment_equ_prob_dist=0.01, break_equ_prob_dist=1.414 * 0.75)
 
     ###########################################################################
