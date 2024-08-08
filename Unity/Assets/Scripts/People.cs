@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,25 +11,13 @@ public class People : MonoBehaviour
     [Range(1, 1000)]
     public int numPeople = 50;
 
-    [Tooltip("The time modifier for Perlin noise.")]
-    [Range(0.0f, 10.0f)]
-    public float tModifier = 1.0f;
+    [Tooltip("Minimum speed of the people.")]
+    [Range(0.0f, 0.1f)]
+    public float minSpeed = 0.01f;
 
-    [Tooltip("The id modifier for Perlin noise.")]
-    [Range(0.0f, 10.0f)]
-    public float idModifier = 1.0f;
-
-    [Tooltip("The time offset for Perlin noise.")]
-    [Range(0.0f, 100.0f)]
-    public float tOffset = 0.0f;
-
-    [Tooltip("The id offset for Perlin noise.")]
-    [Range(0.0f, 100.0f)]
-    public float idOffset = 0.0f;
-
-    [Tooltip("The time limit for normalization of the time parameter.")]
-    [Range(0.0f, 100.0f)]
-    public float tLimit = 10.0f;
+    [Tooltip("Scale of the speed of the people.")]
+    [Range(0.0f, 0.5f)]
+    public float speedScale = 0.01f;
 
     [Tooltip("The attractiveness factor for friends. Determines how much friends attract each other (position-wise).")]
     public float friendAttractiveness = 0.0f;
@@ -41,6 +28,16 @@ public class People : MonoBehaviour
     [Tooltip("The size of each sprite (height).")]
     [Range(0.0f, 200.0f)]
     public float personSize = 15.0f;
+
+    [Tooltip("Beta parameter for random movement.")]
+    [Range(0.0f, 1.0f)]
+    public float randomMoveBeta = 1.0f;
+
+    [Tooltip("Mean for the random movement.")]
+    public Vector2 randomMoveMean = new Vector2(0.0f, 0.0f);
+
+    [Tooltip("Standard deviation for the random movement.")]
+    public Vector2 randomMoveStd = new Vector2(0.01f, 0.01f);
 
     private List<Person> people = new List<Person>();
     private int previousNumPeople;
@@ -64,10 +61,9 @@ public class People : MonoBehaviour
             AdjustNumberOfPeople();
             previousNumPeople = numPeople;
         }
-        RandomMove();
+        MovePeople();
         UpdateTransformPositions();
         UpdateSizes();
-
     }
 
     /// <summary>
@@ -84,13 +80,11 @@ public class People : MonoBehaviour
     /// <summary>
     /// Moves the people randomly using Perlin noise.
     /// </summary>
-    /// <param name="t">The time parameter for noise generation.</param>
-    private void RandomMove()
+    private void MovePeople()
     {
-        float t = Time.time;
-        for(int i = 0; i < people.Count; i++)
+        foreach (Person person in people)
         {
-            people[i].RandomMove(t, i, tLimit, numPeople, tModifier, idModifier, tOffset, idOffset);
+            person.Move();
         }
     }
 
@@ -123,20 +117,37 @@ public class People : MonoBehaviour
     {
         if (numPeople > people.Count)
         {
-            // Add new people
-            for (int i = people.Count; i < numPeople; i++)
-            {
-                people.Add(CreatePerson());
-            }
+            AddPeople(numPeople - people.Count);
         }
         else if (numPeople < people.Count)
         {
-            // Remove excess people
-            for (int i = numPeople; i < people.Count; i++)
-            {
-                Destroy(people[i].gameObject);
-            }
-            people.RemoveRange(numPeople, people.Count - numPeople);
+            RemovePeople(people.Count - numPeople);
+        }
+    }
+
+    /// <summary>
+    /// Adds a specified number of people to the simulation.
+    /// </summary>
+    /// <param name="count">The number of people to add.</param>
+    private void AddPeople(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            people.Add(CreatePerson());
+        }
+    }
+
+    /// <summary>
+    /// Removes a specified number of people from the simulation.
+    /// </summary>
+    /// <param name="count">The number of people to remove.</param>
+    private void RemovePeople(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            int lastIndex = people.Count - 1;
+            Destroy(people[lastIndex].gameObject);
+            people.RemoveAt(lastIndex);
         }
     }
 
@@ -148,9 +159,18 @@ public class People : MonoBehaviour
     {
         GameObject personObject = Instantiate(personPrefab, Vector2.zero, Quaternion.identity);
         Person person = personObject.GetComponent<Person>();
-        person.Initialize();
-        person.SetPersonSize(personSize);
-        person.UpdateTransformPosition();
-        return person;
+        if (person != null)
+        {
+            person.Initialize(minSpeed, minSpeed + speedScale, randomMoveBeta, randomMoveMean, randomMoveStd);
+            person.SetPersonSize(personSize);
+            person.UpdateTransformPosition();
+            return person;
+        }
+        else
+        {
+            Debug.LogError("Person prefab is missing the Person component.");
+            Destroy(personObject);
+            return null;
+        }
     }
 }

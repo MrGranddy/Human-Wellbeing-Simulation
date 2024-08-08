@@ -10,9 +10,9 @@ public class PersonMovement : MonoBehaviour
     /// Returns a random vector from a normal distribution with the given mean and covariance matrix.
     /// </summary>
     /// <param name="mean"> Mean vector of the 2D multivariate normal distribution. </param>
-    /// <param name="sigma"> Standard deviation vector of the 2D multivariate normal distribution. </param></param>
+    /// <param name="std"> Standard deviation vector of the 2D multivariate normal distribution. </param></param>
     /// <returns> A random vector from the given normal distribution.</returns>
-    private Vector2 GetRandomNormalVector2(Vector2 mean, Vector2 sigma)
+    private Vector2 GetRandomNormalVector2(Vector2 mean, Vector2 std)
     {
         // Generate two random numbers
         float r1 = UnityEngine.Random.Range(0.0f, 1.0f);
@@ -25,9 +25,9 @@ public class PersonMovement : MonoBehaviour
         // Create the random vector
         Vector2 randomVector = new Vector2(z1, z2);
 
-        // Multiply the random vector by the sigma values
-        randomVector.x *= sigma.x;
-        randomVector.y *= sigma.y;
+        // Multiply the random vector by the std values
+        randomVector.x *= std.x;
+        randomVector.y *= std.y;
 
         // Add the mean values to the random vector
         randomVector.x += mean.x;
@@ -46,7 +46,7 @@ public class PersonMovement : MonoBehaviour
     /// <param name="p2"> The third control point of the curve. </param>
     /// <param name="p3"> The fourth control point of the curve. </param>
     /// <returns> The point on the curve at parameter t. </returns>
-    private Vector2 GetCubicBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+    public Vector2 GetCubicBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
     {
 
         // First level of interpolation
@@ -71,14 +71,14 @@ public class PersonMovement : MonoBehaviour
     /// <param name="old_p3"> The fourth control point of the previous curve. </param>
     /// <param name="beta"> Strictness of following velocity continuity. If beta is 1, the curves are C1 continuous. </param>
     /// <param name="mu"> Mean vector of the 2D multivariate normal distribution. (Used to generate random control points) </param>
-    /// <param name="sigma"> Standard deviation vector of the 2D multivariate normal distribution. (Used to generate random control points) </param>
+    /// <param name="std"> Standard deviation vector of the 2D multivariate normal distribution. (Used to generate random control points) </param>
     /// <returns> The control points of the random cubic Bezier curve. </returns>
-    private (Vector2, Vector2, Vector2, Vector2) GetRandomG1CubicBezier(Vector2 old_p2, Vector2 old_p3, float beta, Vector2 mu, Vector2 sigma)
+    public (Vector2, Vector2, Vector2, Vector2) GetRandomG1CubicBezier(Vector2 old_p2, Vector2 old_p3, float beta, Vector2 mu, Vector2 std)
     {
-        Vector2 p0 = old_p3 + (old_p3 - old_p2) * beta;
-        Vector2 p1 = p0 + GetRandomNormalVector2(mu, sigma);
-        Vector2 p2 = p1 + GetRandomNormalVector2(mu, sigma);
-        Vector2 p3 = p2 + GetRandomNormalVector2(mu, sigma);
+        Vector2 p0 = old_p3;
+        Vector2 p1 = old_p3 + (old_p3 - old_p2) * beta;
+        Vector2 p2 = p1 + GetRandomNormalVector2(mu, std);
+        Vector2 p3 = p2 + GetRandomNormalVector2(mu, std);
 
         return (p0, p1, p2, p3);
     }

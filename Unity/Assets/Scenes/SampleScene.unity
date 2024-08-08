@@ -168,10 +168,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numPeople: 50
+  minSpeed: 0.01
+  speedScale: 0.01
   friendAttractiveness: 0
-  noiseTimeModifier: 0.1
   personPrefab: {fileID: 8573672359851153000, guid: 15fd7cf8731fa5d4db2a7493ecf5bc33, type: 3}
   personSize: 15
+  randomMoveBeta: 1
+  randomMoveMean: {x: 0, y: 0}
+  randomMoveStd: {x: 0.01, y: 0.01}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

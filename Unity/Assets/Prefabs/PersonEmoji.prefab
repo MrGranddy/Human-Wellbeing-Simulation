@@ -9,8 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5543462695777392413}
-  - component: {fileID: 3445021824031661727}
-  - component: {fileID: 2271737544205269025}
+  - component: {fileID: 4433954935305098360}
+  - component: {fileID: 8679707814938975183}
+  - component: {fileID: 8646878838268743040}
   m_Layer: 0
   m_Name: PersonEmoji
   m_TagString: Untagged
@@ -33,7 +34,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &3445021824031661727
+--- !u!212 &4433954935305098360
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -85,7 +86,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2271737544205269025
+--- !u!114 &8679707814938975183
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,8 +98,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 834ee39a4e1e433429bee48b2e695720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speedCoefficient: 0
-  sfc: 0
-  wpc: 0
-  irc: 0
-  wellbeing: 0
+--- !u!114 &8646878838268743040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8573672359851153000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1d6ab03e1d385044bff7b8d6013a8a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

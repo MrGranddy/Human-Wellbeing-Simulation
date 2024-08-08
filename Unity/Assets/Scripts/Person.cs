@@ -7,80 +7,67 @@ using UnityEngine;
 /// </summary>
 public class Person : MonoBehaviour
 {
-    private const float MAX_RANDOM_SPEED = 3.0e-4f;
-    private const float MIN_RANDOM_SPEED = 3.0e-5f;
+    private float speedCoefficient;
+    // Selfishness coefficient
+    private float sfc;
+    // Wellbeing production coefficient
+    private float wpc;
+    // influence reach coefficient
+    private float irc;
 
-    [Header("Person Attributes")]
-    [Tooltip("The speed coefficient of the person.")]
-    public float speedCoefficient;
-
-    [Tooltip("Selfishness coefficient - A number between 0 and 1 that determines how selfish the person is.")]
-    public float sfc;
-
-    [Tooltip("Wellbeing production coefficient - A number between 0 and 1 that determines how much wellbeing the person produces.")]
-    public float wpc;
-
-    [Tooltip("Influence reach coefficient - A number between 0 and 1 that determines how far the person's influence reaches.")]
-    public float irc;
-
-    [Tooltip("The wellbeing value of the person.")]
-    public float wellbeing;
-
+    private float wellbeing;
+    private PersonMovement personMovement;
     private Vector2 position;
+    private float internalTimer;
+    private Vector2 p0, p1, p2, p3;
+    private float randomMoveBeta;
+    private Vector2 randomMoveMean, randomMoveStd;
 
     /// <summary>
     /// Initializes the person with random attributes.
     /// </summary>
-    public void Initialize()
+    public void Initialize(float minSpeed, float maxSpeed, float randomMoveBeta, Vector2 randomMoveMean, Vector2 randomMoveStd)
     {
-        speedCoefficient = Random.Range(MIN_RANDOM_SPEED, MAX_RANDOM_SPEED);
+        speedCoefficient = Random.Range(minSpeed, maxSpeed);
         sfc = Random.value;
         wpc = Random.value;
         irc = Random.value;
         wellbeing = 0;
 
         position = new Vector2(Random.value, Random.value);
+        internalTimer = 0;
+
+        this.randomMoveBeta = randomMoveBeta;
+        this.randomMoveMean = randomMoveMean;
+        this.randomMoveStd = randomMoveStd;
+
+        personMovement = GetComponent<PersonMovement>();
+        if (personMovement == null)
+        {
+            Debug.LogError("PersonMovement component is missing on the Person prefab.");
+            return;
+        }
+
+        (p0, p1, p2, p3) = personMovement.GetRandomG1CubicBezier(position, position, randomMoveBeta, randomMoveMean, randomMoveStd);
     }
 
-      
-
-
-    /// <summary>
-    /// Moves the person randomly using Perlin noise.
-    /// </summary>
-    /// <param name="t">The time parameter for noise generation.</param>
-    public void RandomMove(float t, float id, float limitT, float N, float tModifier, float idModifier, float tOffset, float idOffset)
+    /// <summary> Randomly moves the person. </summary>
+    public void Move()
     {
+        if (personMovement == null)
+        {
+            Debug.LogError("Cannot move person because PersonMovement component is missing.");
+            return;
+        }
 
-        // Get the normalized id of the person
-        float normalizedId = id / N;
+        position = personMovement.GetCubicBezierPoint(internalTimer, p0, p1, p2, p3);
+        internalTimer += speedCoefficient;
 
-        // Loop and normalize the time parameter
-        float normalizedT = (t % limitT) / limitT;
-
-        // Modify the parameters for controlling the behavior
-        float modifiedT = normalizedT * tModifier;
-        float modifiedid = normalizedId * idModifier;
-
-        // Create x and y components of a random direction vector
-        float vx = Mathf.PerlinNoise(modifiedT + tOffset + modifiedid + idOffset, 0) * 2 - 1;
-        float vy = Mathf.PerlinNoise(modifiedT + tOffset + modifiedid + idOffset, 1000) * 2 - 1;
-
-        // Create a random direction vector
-        Vector2 randomDirection = new Vector2(vx, vy);
-
-        // Move the person in the random direction
-        position += randomDirection * speedCoefficient;
-        position = new Vector2(Mathf.Clamp01(position.x), Mathf.Clamp01(position.y));
-    }
-
-    /// <summary>
-    /// Moves the person by a given delta in x and y directions.
-    /// </summary>
-    /// <param name="delta">Change in position vector.</param>
-    public void Move(Vector2 delta)
-    {
-        position = new Vector2(Mathf.Clamp01(position.x + delta.x), Mathf.Clamp01(position.y + delta.y));
+        if (internalTimer > 1.0f)
+        {
+            internalTimer -= 1.0f;
+            (p0, p1, p2, p3) = personMovement.GetRandomG1CubicBezier(p2, p3, randomMoveBeta, randomMoveMean, randomMoveStd);
+        }
     }
 
     /// <summary>
@@ -102,17 +89,19 @@ public class Person : MonoBehaviour
 
         // Adjust normalized position to account for the sprite's size
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            Debug.LogError("SpriteRenderer component is missing.");
+            return Vector3.zero;
+        }
+
         float spriteHalfWidth = spriteRenderer.bounds.size.x / 2f;
         float spriteHalfHeight = spriteRenderer.bounds.size.y / 2f;
 
-        // Clamp normalized position within 0 to 1 range considering the sprite size
         float clampedX = Mathf.Clamp(normalizedPosition.x, 0 + spriteHalfWidth / Screen.width, 1 - spriteHalfWidth / Screen.width);
         float clampedY = Mathf.Clamp(normalizedPosition.y, 0 + spriteHalfHeight / Screen.height, 1 - spriteHalfHeight / Screen.height);
 
-        // Convert normalized position to viewport position
         Vector3 viewportPosition = new Vector3(clampedX, clampedY, cam.nearClipPlane);
-
-        // Convert viewport position to world position
         Vector3 worldPosition = cam.ViewportToWorldPoint(viewportPosition);
 
         return worldPosition;
@@ -125,15 +114,16 @@ public class Person : MonoBehaviour
     public void SetPersonSize(float personSize)
     {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            Debug.LogError("SpriteRenderer component is missing.");
+            return;
+        }
 
-        // Calculate the aspect ratio of the sprite
         float aspectRatio = spriteRenderer.sprite.bounds.size.x / spriteRenderer.sprite.bounds.size.y;
-
-        // Calculate the scale factor needed to achieve the target height in world units
         float pixelsPerUnit = spriteRenderer.sprite.pixelsPerUnit;
         float targetHeightInWorldUnits = personSize / pixelsPerUnit;
 
-        // Apply the scale factor to both x and y to maintain aspect ratio
         transform.localScale = new Vector3(targetHeightInWorldUnits * aspectRatio, targetHeightInWorldUnits, 1);
     }
 }
