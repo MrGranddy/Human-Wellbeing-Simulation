@@ -12,12 +12,28 @@ public class People : MonoBehaviour
     [Range(1, 1000)]
     public int numPeople = 50;
 
+    [Tooltip("The time modifier for Perlin noise.")]
+    [Range(0.0f, 10.0f)]
+    public float tModifier = 1.0f;
+
+    [Tooltip("The id modifier for Perlin noise.")]
+    [Range(0.0f, 10.0f)]
+    public float idModifier = 1.0f;
+
+    [Tooltip("The time offset for Perlin noise.")]
+    [Range(0.0f, 100.0f)]
+    public float tOffset = 0.0f;
+
+    [Tooltip("The id offset for Perlin noise.")]
+    [Range(0.0f, 100.0f)]
+    public float idOffset = 0.0f;
+
+    [Tooltip("The time limit for normalization of the time parameter.")]
+    [Range(0.0f, 100.0f)]
+    public float tLimit = 10.0f;
+
     [Tooltip("The attractiveness factor for friends. Determines how much friends attract each other (position-wise).")]
     public float friendAttractiveness = 0.0f;
-
-    [Tooltip("The time modifier for perlin noise.")]
-    [Range(0.0f, 1.0f)]
-    public float noiseTimeModifier = 0.1f;
 
     [Tooltip("The prefab used to represent a person.")]
     public GameObject personPrefab;
@@ -48,9 +64,10 @@ public class People : MonoBehaviour
             AdjustNumberOfPeople();
             previousNumPeople = numPeople;
         }
-        RandomMove(Time.time, noiseTimeModifier);
+        RandomMove();
         UpdateTransformPositions();
         UpdateSizes();
+
     }
 
     /// <summary>
@@ -68,11 +85,12 @@ public class People : MonoBehaviour
     /// Moves the people randomly using Perlin noise.
     /// </summary>
     /// <param name="t">The time parameter for noise generation.</param>
-    private void RandomMove(float t, float noiseTimeModifier)
+    private void RandomMove()
     {
-        foreach (Person person in people)
+        float t = Time.time;
+        for(int i = 0; i < people.Count; i++)
         {
-            person.RandomMove(t, noiseTimeModifier);
+            people[i].RandomMove(t, i, tLimit, numPeople, tModifier, idModifier, tOffset, idOffset);
         }
     }
 

@@ -7,8 +7,8 @@ using UnityEngine;
 /// </summary>
 public class Person : MonoBehaviour
 {
-    private const float MAX_RANDOM_SPEED = 3.0e-3f;
-    private const float MIN_RANDOM_SPEED = 3.0e-4f;
+    private const float MAX_RANDOM_SPEED = 3.0e-4f;
+    private const float MIN_RANDOM_SPEED = 3.0e-5f;
 
     [Header("Person Attributes")]
     [Tooltip("The speed coefficient of the person.")]
@@ -42,21 +42,34 @@ public class Person : MonoBehaviour
         position = new Vector2(Random.value, Random.value);
     }
 
+      
+
+
     /// <summary>
     /// Moves the person randomly using Perlin noise.
     /// </summary>
     /// <param name="t">The time parameter for noise generation.</param>
-    public void RandomMove(float t, float noiseTimeModifier)
+    public void RandomMove(float t, float id, float limitT, float N, float tModifier, float idModifier, float tOffset, float idOffset)
     {
 
-        float id = transform.GetSiblingIndex();
+        // Get the normalized id of the person
+        float normalizedId = id / N;
 
-        float modifiedT = t * noiseTimeModifier;
+        // Loop and normalize the time parameter
+        float normalizedT = (t % limitT) / limitT;
 
-        Vector2 randomDirection = new Vector2(
-            Mathf.PerlinNoise(modifiedT, id * 2.0f) * 2 - 1,
-            Mathf.PerlinNoise(modifiedT, id * 2.0f + 1) * 2 - 1
-        );
+        // Modify the parameters for controlling the behavior
+        float modifiedT = normalizedT * tModifier;
+        float modifiedid = normalizedId * idModifier;
+
+        // Create x and y components of a random direction vector
+        float vx = Mathf.PerlinNoise(modifiedT + tOffset + modifiedid + idOffset, 0) * 2 - 1;
+        float vy = Mathf.PerlinNoise(modifiedT + tOffset + modifiedid + idOffset, 1000) * 2 - 1;
+
+        // Create a random direction vector
+        Vector2 randomDirection = new Vector2(vx, vy);
+
+        // Move the person in the random direction
         position += randomDirection * speedCoefficient;
         position = new Vector2(Mathf.Clamp01(position.x), Mathf.Clamp01(position.y));
     }
