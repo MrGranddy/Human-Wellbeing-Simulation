@@ -71,6 +71,7 @@ public class CubicBezierCurve
             this.p2.x = -this.p2.x;
             this.p3.x = -this.p3.x;
         }
+    }
 }
 
 public class PersonMovement : MonoBehaviour
