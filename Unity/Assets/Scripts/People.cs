@@ -12,12 +12,12 @@ public class People : MonoBehaviour
     public int numPeople = 50;
 
     [Tooltip("Minimum speed of the people.")]
-    [Range(0.0f, 0.1f)]
-    public float minSpeed = 0.01f;
+    [Range(0.0f, 0.01f)]
+    public float minSpeed = 0.001f;
 
     [Tooltip("Scale of the speed of the people.")]
-    [Range(0.0f, 0.5f)]
-    public float speedScale = 0.01f;
+    [Range(0.0f, 0.05f)]
+    public float speedScale = 0.001f;
 
     [Tooltip("The attractiveness factor for friends. Determines how much friends attract each other (position-wise).")]
     public float friendAttractiveness = 0.0f;
@@ -84,7 +84,7 @@ public class People : MonoBehaviour
     {
         foreach (Person person in people)
         {
-            person.Move();
+            person.Move(randomMoveBeta, randomMoveMean, randomMoveStd);
         }
     }
 
@@ -161,7 +161,7 @@ public class People : MonoBehaviour
         Person person = personObject.GetComponent<Person>();
         if (person != null)
         {
-            person.Initialize(minSpeed, minSpeed + speedScale, randomMoveBeta, randomMoveMean, randomMoveStd);
+            person.Initialize(minSpeed, minSpeed + speedScale);
             person.SetPersonSize(personSize);
             person.UpdateTransformPosition();
             return person;
@@ -173,4 +173,5 @@ public class People : MonoBehaviour
             return null;
         }
     }
+
 }

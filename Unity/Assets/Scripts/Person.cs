@@ -20,13 +20,11 @@ public class Person : MonoBehaviour
     private Vector2 position;
     private float internalTimer;
     private Vector2 p0, p1, p2, p3;
-    private float randomMoveBeta;
-    private Vector2 randomMoveMean, randomMoveStd;
 
     /// <summary>
     /// Initializes the person with random attributes.
     /// </summary>
-    public void Initialize(float minSpeed, float maxSpeed, float randomMoveBeta, Vector2 randomMoveMean, Vector2 randomMoveStd)
+    public void Initialize(float minSpeed, float maxSpeed)
     {
         speedCoefficient = Random.Range(minSpeed, maxSpeed);
         sfc = Random.value;
@@ -37,10 +35,6 @@ public class Person : MonoBehaviour
         position = new Vector2(Random.value, Random.value);
         internalTimer = 0;
 
-        this.randomMoveBeta = randomMoveBeta;
-        this.randomMoveMean = randomMoveMean;
-        this.randomMoveStd = randomMoveStd;
-
         personMovement = GetComponent<PersonMovement>();
         if (personMovement == null)
         {
@@ -48,11 +42,11 @@ public class Person : MonoBehaviour
             return;
         }
 
-        (p0, p1, p2, p3) = personMovement.GetRandomG1CubicBezier(position, position, randomMoveBeta, randomMoveMean, randomMoveStd);
+        (p0, p1, p2, p3) = (position, position, position, position);
     }
 
     /// <summary> Randomly moves the person. </summary>
-    public void Move()
+    public void Move(float randomMoveBeta, Vector2 randomMoveMean, Vector2 randomMoveStd)
     {
         if (personMovement == null)
         {
@@ -126,4 +120,38 @@ public class Person : MonoBehaviour
 
         transform.localScale = new Vector3(targetHeightInWorldUnits * aspectRatio, targetHeightInWorldUnits, 1);
     }
+
+    void OnDrawGizmos()
+    {
+
+        Gizmos.color = Color.red;
+
+        Vector2 world_p0 = MapToWorld(p0);
+        Vector2 world_p1 = MapToWorld(p1);
+        Vector2 world_p2 = MapToWorld(p2);
+        Vector2 world_p3 = MapToWorld(p3);
+
+        Gizmos.DrawSphere(world_p0, 0.01f);
+        Gizmos.DrawSphere(world_p1, 0.01f);
+        Gizmos.DrawSphere(world_p2, 0.01f);
+        Gizmos.DrawSphere(world_p3, 0.01f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(world_p0, world_p1);
+        Gizmos.DrawLine(world_p1, world_p2);
+        Gizmos.DrawLine(world_p2, world_p3);
+
+        Gizmos.color = Color.blue;
+        Vector2 lastPoint = world_p0;
+        for (float t = 0.01f; t <= 1.0f; t += 0.01f)
+        {
+            Vector2 nextPoint = personMovement.GetCubicBezierPoint(t, p0, p1, p2, p3);
+            nextPoint = MapToWorld(nextPoint);
+            Gizmos.DrawLine(lastPoint, nextPoint);
+            lastPoint = nextPoint;
+        }
+
+    }
 }
+
+
