@@ -72,6 +72,23 @@ namespace MathUtils
             }
         }
 
+        public float GetLength(int numSamplePoints)
+        {
+            float length = 0.0f;
+            float dt = 1.0f / numSamplePoints;
+
+            Vector2 prevPoint = GetPoint(0.0f);
+
+            for (int i = 1; i <= numSamplePoints; i++)
+            {
+                Vector2 point = GetPoint(i * dt);
+                length += Vector2.Distance(prevPoint, point);
+                prevPoint = point;
+            }
+
+            return length;
+        }
+
         public static CubicBezierCurve GetRandomG1CubicBezier(MathUtils.CubicBezierCurve oldCurve, float beta, Vector2 mu, Vector2 std)
         {
             Vector2 p0 = oldCurve.p3;

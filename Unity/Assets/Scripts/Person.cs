@@ -23,6 +23,7 @@ public class Person : MonoBehaviour
 
     private float simulationHeight;
     private float simulationWidth;
+    private float dt;
 
     /// <summary>
     /// Initializes the person with random attributes.
@@ -47,6 +48,8 @@ public class Person : MonoBehaviour
         Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
 
         cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
+        float length = cubicBezierCurve.GetLength(20);
+        dt = length / baseSpeed;
     }
 
     public void UpdateSimulationSize(float simulationWidth, float simulationHeight)
@@ -79,12 +82,14 @@ public class Person : MonoBehaviour
 
         position = cubicBezierCurve.GetPoint(curveProgress);
 
-        curveProgress += speedCoefficient * baseSpeed;
+        curveProgress += dt * speedCoefficient;
 
         if (curveProgress > 1.0f)
         {
             curveProgress -= 1.0f;
             cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomWalkBeta, randomWalkMean, randomWalkStd);
+            float length = cubicBezierCurve.GetLength(20);
+            dt = length / baseSpeed;
         }
 
     }
