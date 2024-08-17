@@ -11,13 +11,17 @@ public class People : MonoBehaviour
     [Range(1, 1000)]
     public int numPeople = 50;
 
-    [Tooltip("Minimum speed of the people.")]
-    [Range(0.0f, 0.01f)]
-    public float minSpeed = 0.001f;
+    [Tooltip("The height of the simulation.")]
+    [Range(0.0f, 5.0f)]
+    public float simulationHeight = 1.0f;
+
+    [Tooltip("The width of the simulation.")]
+    [Range(0.0f, 5.0f)]
+    public float simulationWidth = 1.0f;
 
     [Tooltip("Scale of the speed of the people.")]
     [Range(0.0f, 0.05f)]
-    public float speedScale = 0.001f;
+    public float speedCoefficient = 0.001f;
 
     [Tooltip("The attractiveness factor for friends. Determines how much friends attract each other (position-wise).")]
     public float friendAttractiveness = 0.0f;
@@ -31,13 +35,13 @@ public class People : MonoBehaviour
 
     [Tooltip("Beta parameter for random movement.")]
     [Range(0.0f, 1.0f)]
-    public float randomMoveBeta = 1.0f;
+    public float randomWalkBeta = 1.0f;
 
     [Tooltip("Mean for the random movement.")]
-    public Vector2 randomMoveMean = new Vector2(0.0f, 0.0f);
+    public Vector2 randomWalkMean = new Vector2(0.0f, 0.0f);
 
     [Tooltip("Standard deviation for the random movement.")]
-    public Vector2 randomMoveStd = new Vector2(0.01f, 0.01f);
+    public Vector2 randomWalkStd = new Vector2(0.01f, 0.01f);
 
     private List<Person> people = new List<Person>();
     private int previousNumPeople;
@@ -61,6 +65,7 @@ public class People : MonoBehaviour
             AdjustNumberOfPeople();
             previousNumPeople = numPeople;
         }
+        UpdateSimulationSize();
         MovePeople();
         UpdateTransformPositions();
         UpdateSizes();
@@ -77,6 +82,14 @@ public class People : MonoBehaviour
         }
     }
 
+    private void UpdateSimulationSize()
+    {
+        foreach (Person person in people)
+        {
+            person.UpdateSimulationSize(simulationHeight, simulationWidth);
+        }
+    }
+
     /// <summary>
     /// Moves the people randomly using Perlin noise.
     /// </summary>
@@ -84,7 +97,7 @@ public class People : MonoBehaviour
     {
         foreach (Person person in people)
         {
-            person.Move(randomMoveBeta, randomMoveMean, randomMoveStd);
+            person.Move(randomWalkBeta, randomWalkMean, randomWalkStd, speedCoefficient);
         }
     }
 
@@ -161,7 +174,7 @@ public class People : MonoBehaviour
         Person person = personObject.GetComponent<Person>();
         if (person != null)
         {
-            person.Initialize(minSpeed, minSpeed + speedScale, randomMoveMean, randomMoveStd);
+            person.Initialize(randomWalkMean, randomWalkStd, simulationHeight, simulationWidth);
             person.SetPersonSize(personSize);
             person.UpdateTransformPosition();
             return person;

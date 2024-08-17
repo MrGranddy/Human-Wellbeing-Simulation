@@ -40,30 +40,30 @@ namespace MathUtils
             return p0123;
         }
 
-        public void ReflectCurve(int side, float height, float width)
+        public void ReflectCurve(Flags.HitStatus side, float height, float width)
         {
-            if (side == 0) // Top side
+            if (side == Flags.HitStatus.HitTop) // Top side
             {
                 this.p0.y = 2 * height - this.p0.y;
                 this.p1.y = 2 * height - this.p1.y;
                 this.p2.y = 2 * height - this.p2.y;
                 this.p3.y = 2 * height - this.p3.y;
             }
-            else if (side == 1) // Right side
+            else if (side == Flags.HitStatus.HitRight) // Right side
             {
                 this.p0.x = 2 * width - this.p0.x;
                 this.p1.x = 2 * width - this.p1.x;
                 this.p2.x = 2 * width - this.p2.x;
                 this.p3.x = 2 * width - this.p3.x;
             }
-            else if (side == 2) // Bottom side
+            else if (side == Flags.HitStatus.HitBottom) // Bottom side
             {
                 this.p0.y = -this.p0.y;
                 this.p1.y = -this.p1.y;
                 this.p2.y = -this.p2.y;
                 this.p3.y = -this.p3.y;
             }
-            else if (side == 3) // Left side
+            else if (side == Flags.HitStatus.HitLeft) // Left side
             {
                 this.p0.x = -this.p0.x;
                 this.p1.x = -this.p1.x;

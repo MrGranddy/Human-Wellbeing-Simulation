@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class Person : MonoBehaviour
 {
-    private float speedCoefficient;
+    private float baseSpeed;
     // Selfishness coefficient
     private float sfc;
     // Wellbeing production coefficient
@@ -17,43 +17,76 @@ public class Person : MonoBehaviour
 
     private float wellbeing;
     private Vector2 position;
-    private float internalTimer;
+    private float curveProgress;
 
     private MathUtils.CubicBezierCurve cubicBezierCurve;
+
+    private float simulationHeight;
+    private float simulationWidth;
 
     /// <summary>
     /// Initializes the person with random attributes.
     /// </summary>
-    public void Initialize(float minSpeed, float maxSpeed, Vector2 randomMoveMean, Vector2 randomMoveStd)
+    public void Initialize(Vector2 randomWalkMean, Vector2 randomWalkStd, float simulationHeight, float simulationWidth)
     {
-        speedCoefficient = Random.Range(minSpeed, maxSpeed);
+        baseSpeed = Random.Range(0.0f, 1.0f);
         sfc = Random.value;
         wpc = Random.value;
         irc = Random.value;
         wellbeing = 0;
 
-        position = new Vector2(Random.value, Random.value);
-        internalTimer = 0;
+        this.simulationHeight = simulationHeight;
+        this.simulationWidth = simulationWidth;
+
+        position = new Vector2(Random.Range(0, simulationWidth), Random.Range(0, simulationHeight));
+        curveProgress = 0.0f;
 
         Vector2 p0 = position;
-        Vector2 p1 = p0 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
-        Vector2 p2 = p1 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
-        Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
+        Vector2 p1 = p0 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
+        Vector2 p2 = p1 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
+        Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
 
         cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
     }
 
-    /// <summary> Randomly moves the person. </summary>
-    public void Move(float randomMoveBeta, Vector2 randomMoveMean, Vector2 randomMoveStd)
+    public void UpdateSimulationSize(float simulationHeight, float simulationWidth)
     {
-        position = cubicBezierCurve.GetPoint(internalTimer);
-        internalTimer += speedCoefficient;
+        this.simulationHeight = simulationHeight;
+        this.simulationWidth = simulationWidth;
+    }
 
-        if (internalTimer > 1.0f)
+    /// <summary> Randomly moves the person. </summary>
+    public void Move(float randomWalkBeta, Vector2 randomWalkMean, Vector2 randomWalkStd, float speedCoefficient)
+    {
+        position = cubicBezierCurve.GetPoint(curveProgress);
+
+        if (position.y > simulationHeight)
         {
-            internalTimer -= 1.0f;
-            cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomMoveBeta, randomMoveMean, randomMoveStd);
+            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitTop, simulationHeight, simulationWidth);
         }
+        if (position.x > simulationWidth)
+        {
+            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitRight, simulationHeight, simulationWidth);
+        }
+        if (position.y < 0)
+        {
+            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitBottom, simulationHeight, simulationWidth);
+        }
+        if (position.x < 0)
+        {
+            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitLeft, simulationHeight, simulationWidth);
+        }
+
+        position = cubicBezierCurve.GetPoint(curveProgress);
+
+        curveProgress += speedCoefficient * baseSpeed;
+
+        if (curveProgress > 1.0f)
+        {
+            curveProgress -= 1.0f;
+            cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomWalkBeta, randomWalkMean, randomWalkStd);
+        }
+
     }
 
     /// <summary>
@@ -65,29 +98,20 @@ public class Person : MonoBehaviour
     }
 
     /// <summary>
-    /// Maps normalized position to world coordinates.
+    /// Maps simulationPosition position to world coordinates.
     /// </summary>
-    /// <param name="normalizedPosition">The normalized position.</param>
+    /// <param name="simulationPosition">The simulation position.</param>
     /// <returns>The world position.</returns>
-    private Vector3 MapToWorld(Vector2 normalizedPosition)
+    private Vector3 MapToWorld(Vector2 simulationPosition)
     {
         Camera cam = Camera.main;
 
         // Adjust normalized position to account for the sprite's size
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            Debug.LogError("SpriteRenderer component is missing.");
-            return Vector3.zero;
-        }
 
-        float spriteHalfWidth = spriteRenderer.bounds.size.x / 2f;
-        float spriteHalfHeight = spriteRenderer.bounds.size.y / 2f;
+        Vector2 normalizedPosition = new Vector2(simulationPosition.x / simulationWidth, simulationPosition.y / simulationHeight);
 
-        float clampedX = Mathf.Clamp(normalizedPosition.x, 0 + spriteHalfWidth / Screen.width, 1 - spriteHalfWidth / Screen.width);
-        float clampedY = Mathf.Clamp(normalizedPosition.y, 0 + spriteHalfHeight / Screen.height, 1 - spriteHalfHeight / Screen.height);
-
-        Vector3 viewportPosition = new Vector3(clampedX, clampedY, cam.nearClipPlane);
+        Vector3 viewportPosition = new Vector3(normalizedPosition.x, normalizedPosition.y, cam.nearClipPlane);
         Vector3 worldPosition = cam.ViewportToWorldPoint(viewportPosition);
 
         return worldPosition;
@@ -100,12 +124,6 @@ public class Person : MonoBehaviour
     public void SetPersonSize(float personSize)
     {
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            Debug.LogError("SpriteRenderer component is missing.");
-            return;
-        }
-
         float aspectRatio = spriteRenderer.sprite.bounds.size.x / spriteRenderer.sprite.bounds.size.y;
         float pixelsPerUnit = spriteRenderer.sprite.pixelsPerUnit;
         float targetHeightInWorldUnits = personSize / pixelsPerUnit;
@@ -117,6 +135,7 @@ public class Person : MonoBehaviour
     {
 
         float drawCurveResolution = 0.01f;
+        float drawControlPointsSize = 0.01f;
 
         Gizmos.color = Color.red;
 
@@ -125,10 +144,10 @@ public class Person : MonoBehaviour
         Vector2 world_p2 = MapToWorld(cubicBezierCurve.p2);
         Vector2 world_p3 = MapToWorld(cubicBezierCurve.p3);
 
-        Gizmos.DrawSphere(world_p0, 0.01f);
-        Gizmos.DrawSphere(world_p1, 0.01f);
-        Gizmos.DrawSphere(world_p2, 0.01f);
-        Gizmos.DrawSphere(world_p3, 0.01f);
+        Gizmos.DrawSphere(world_p0, drawControlPointsSize);
+        Gizmos.DrawSphere(world_p1, drawControlPointsSize);
+        Gizmos.DrawSphere(world_p2, drawControlPointsSize);
+        Gizmos.DrawSphere(world_p3, drawControlPointsSize);
 
         Gizmos.color = Color.green;
         Gizmos.DrawLine(world_p0, world_p1);
