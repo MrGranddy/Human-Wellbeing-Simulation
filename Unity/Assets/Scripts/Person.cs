@@ -16,15 +16,15 @@ public class Person : MonoBehaviour
     private float irc;
 
     private float wellbeing;
-    private PersonMovement personMovement;
     private Vector2 position;
     private float internalTimer;
-    private Vector2 p0, p1, p2, p3;
+
+    private MathUtils.CubicBezierCurve cubicBezierCurve;
 
     /// <summary>
     /// Initializes the person with random attributes.
     /// </summary>
-    public void Initialize(float minSpeed, float maxSpeed)
+    public void Initialize(float minSpeed, float maxSpeed, Vector2 randomMoveMean, Vector2 randomMoveStd)
     {
         speedCoefficient = Random.Range(minSpeed, maxSpeed);
         sfc = Random.value;
@@ -35,32 +35,24 @@ public class Person : MonoBehaviour
         position = new Vector2(Random.value, Random.value);
         internalTimer = 0;
 
-        personMovement = GetComponent<PersonMovement>();
-        if (personMovement == null)
-        {
-            Debug.LogError("PersonMovement component is missing on the Person prefab.");
-            return;
-        }
+        Vector2 p0 = position;
+        Vector2 p1 = p0 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
+        Vector2 p2 = p1 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
+        Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomMoveMean, randomMoveStd);
 
-        (p0, p1, p2, p3) = (position, position, position, position);
+        cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
     }
 
     /// <summary> Randomly moves the person. </summary>
     public void Move(float randomMoveBeta, Vector2 randomMoveMean, Vector2 randomMoveStd)
     {
-        if (personMovement == null)
-        {
-            Debug.LogError("Cannot move person because PersonMovement component is missing.");
-            return;
-        }
-
-        position = personMovement.GetCubicBezierPoint(internalTimer, p0, p1, p2, p3);
+        position = cubicBezierCurve.GetPoint(internalTimer);
         internalTimer += speedCoefficient;
 
         if (internalTimer > 1.0f)
         {
             internalTimer -= 1.0f;
-            (p0, p1, p2, p3) = personMovement.GetRandomG1CubicBezier(p2, p3, randomMoveBeta, randomMoveMean, randomMoveStd);
+            cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomMoveBeta, randomMoveMean, randomMoveStd);
         }
     }
 
@@ -124,12 +116,14 @@ public class Person : MonoBehaviour
     void OnDrawGizmos()
     {
 
+        float drawCurveResolution = 0.01f;
+
         Gizmos.color = Color.red;
 
-        Vector2 world_p0 = MapToWorld(p0);
-        Vector2 world_p1 = MapToWorld(p1);
-        Vector2 world_p2 = MapToWorld(p2);
-        Vector2 world_p3 = MapToWorld(p3);
+        Vector2 world_p0 = MapToWorld(cubicBezierCurve.p0);
+        Vector2 world_p1 = MapToWorld(cubicBezierCurve.p1);
+        Vector2 world_p2 = MapToWorld(cubicBezierCurve.p2);
+        Vector2 world_p3 = MapToWorld(cubicBezierCurve.p3);
 
         Gizmos.DrawSphere(world_p0, 0.01f);
         Gizmos.DrawSphere(world_p1, 0.01f);
@@ -143,9 +137,9 @@ public class Person : MonoBehaviour
 
         Gizmos.color = Color.blue;
         Vector2 lastPoint = world_p0;
-        for (float t = 0.01f; t <= 1.0f; t += 0.01f)
+        for (float t = drawCurveResolution; t <= 1.0f; t += drawCurveResolution)
         {
-            Vector2 nextPoint = personMovement.GetCubicBezierPoint(t, p0, p1, p2, p3);
+            Vector2 nextPoint = cubicBezierCurve.GetPoint(t);
             nextPoint = MapToWorld(nextPoint);
             Gizmos.DrawLine(lastPoint, nextPoint);
             lastPoint = nextPoint;

@@ -161,7 +161,7 @@ public class People : MonoBehaviour
         Person person = personObject.GetComponent<Person>();
         if (person != null)
         {
-            person.Initialize(minSpeed, minSpeed + speedScale);
+            person.Initialize(minSpeed, minSpeed + speedScale, randomMoveMean, randomMoveStd);
             person.SetPersonSize(personSize);
             person.UpdateTransformPosition();
             return person;

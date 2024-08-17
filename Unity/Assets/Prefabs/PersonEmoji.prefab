@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 5543462695777392413}
   - component: {fileID: 4433954935305098360}
   - component: {fileID: 8679707814938975183}
-  - component: {fileID: 8646878838268743040}
   m_Layer: 0
   m_Name: PersonEmoji
   m_TagString: Untagged
@@ -96,17 +95,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 834ee39a4e1e433429bee48b2e695720, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8646878838268743040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8573672359851153000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1d6ab03e1d385044bff7b8d6013a8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
