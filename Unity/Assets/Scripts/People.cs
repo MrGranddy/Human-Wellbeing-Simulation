@@ -11,13 +11,9 @@ public class People : MonoBehaviour
     [Range(1, 1000)]
     public int numPeople = 50;
 
-    [Tooltip("The height of the simulation.")]
-    [Range(0.0f, 5.0f)]
-    public float simulationHeight = 1.0f;
-
-    [Tooltip("The width of the simulation.")]
-    [Range(0.0f, 5.0f)]
-    public float simulationWidth = 1.0f;
+    [Tooltip("The simulation aspect ratio.")]
+    [Range(0.1f, 5.0f)]
+    public float aspectRatio = 1.777f;
 
     [Tooltip("Scale of the speed of the people.")]
     [Range(0.0f, 0.05f)]
@@ -41,7 +37,7 @@ public class People : MonoBehaviour
     public Vector2 randomWalkMean = new Vector2(0.0f, 0.0f);
 
     [Tooltip("Standard deviation for the random movement.")]
-    public Vector2 randomWalkStd = new Vector2(0.01f, 0.01f);
+    public Vector2 randomWalkStd = new Vector2(0.1f, 0.1f);
 
     private List<Person> people = new List<Person>();
     private int previousNumPeople;
@@ -82,11 +78,33 @@ public class People : MonoBehaviour
         }
     }
 
+    private Vector2 GetSimulationSize()
+    {
+        float simulationHeight = 0.0f;
+        float simulationWidth = 0.0f;
+
+        if (aspectRatio > 1.0f)
+        {
+            simulationHeight = 1.0f;
+            simulationWidth = aspectRatio;
+        }
+        else
+        {
+            simulationHeight = 1.0f / aspectRatio;
+            simulationWidth = 1.0f;
+        }
+
+        return new Vector2(simulationWidth, simulationHeight);
+    }
+
     private void UpdateSimulationSize()
     {
+
+        Vector2 simulationSize = GetSimulationSize();
+
         foreach (Person person in people)
         {
-            person.UpdateSimulationSize(simulationHeight, simulationWidth);
+            person.UpdateSimulationSize(simulationSize.x, simulationSize.y);
         }
     }
 
@@ -174,7 +192,8 @@ public class People : MonoBehaviour
         Person person = personObject.GetComponent<Person>();
         if (person != null)
         {
-            person.Initialize(randomWalkMean, randomWalkStd, simulationHeight, simulationWidth);
+            Vector2 simulationSize = GetSimulationSize();
+            person.Initialize(randomWalkMean, randomWalkStd, simulationSize.x, simulationSize.y);
             person.SetPersonSize(personSize);
             person.UpdateTransformPosition();
             return person;

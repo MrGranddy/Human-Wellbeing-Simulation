@@ -27,7 +27,7 @@ public class Person : MonoBehaviour
     /// <summary>
     /// Initializes the person with random attributes.
     /// </summary>
-    public void Initialize(Vector2 randomWalkMean, Vector2 randomWalkStd, float simulationHeight, float simulationWidth)
+    public void Initialize(Vector2 randomWalkMean, Vector2 randomWalkStd, float simulationWidth, float simulationHeight)
     {
         baseSpeed = Random.Range(0.0f, 1.0f);
         sfc = Random.value;
@@ -49,10 +49,10 @@ public class Person : MonoBehaviour
         cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
     }
 
-    public void UpdateSimulationSize(float simulationHeight, float simulationWidth)
+    public void UpdateSimulationSize(float simulationWidth, float simulationHeight)
     {
-        this.simulationHeight = simulationHeight;
         this.simulationWidth = simulationWidth;
+        this.simulationHeight = simulationHeight;
     }
 
     /// <summary> Randomly moves the person. </summary>
