@@ -17,13 +17,15 @@ public class Person : MonoBehaviour
 
     private float wellbeing;
     private Vector2 position;
-    private float curveProgress;
+    private float curveTime;
 
     private MathUtils.CubicBezierCurve cubicBezierCurve;
 
     private float simulationHeight;
     private float simulationWidth;
-    private float dt;
+    private float curveLength;
+
+    private int bezierLengthResolution = 30;
 
     /// <summary>
     /// Initializes the person with random attributes.
@@ -40,7 +42,7 @@ public class Person : MonoBehaviour
         this.simulationWidth = simulationWidth;
 
         position = new Vector2(Random.Range(0, simulationWidth), Random.Range(0, simulationHeight));
-        curveProgress = 0.0f;
+        curveTime = 0.0f;
 
         Vector2 p0 = position;
         Vector2 p1 = p0 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
@@ -48,8 +50,7 @@ public class Person : MonoBehaviour
         Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
 
         cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
-        float length = cubicBezierCurve.GetLength(20);
-        dt = length / baseSpeed;
+        curveLength = cubicBezierCurve.GetLength(bezierLengthResolution);
     }
 
     public void UpdateSimulationSize(float simulationWidth, float simulationHeight)
@@ -61,7 +62,7 @@ public class Person : MonoBehaviour
     /// <summary> Randomly moves the person. </summary>
     public void Move(float randomWalkBeta, Vector2 randomWalkMean, Vector2 randomWalkStd, float speedCoefficient)
     {
-        position = cubicBezierCurve.GetPoint(curveProgress);
+        position = cubicBezierCurve.GetPoint(curveTime);
 
         if (position.y > simulationHeight)
         {
@@ -80,16 +81,20 @@ public class Person : MonoBehaviour
             cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitLeft, simulationHeight, simulationWidth);
         }
 
-        position = cubicBezierCurve.GetPoint(curveProgress);
+        position = cubicBezierCurve.GetPoint(curveTime);
 
-        curveProgress += dt * speedCoefficient;
+        // Calculate dt such that the person has a constant speed in terms of simulation units / real seconds
+        float speed = baseSpeed * speedCoefficient;
+        float totalTimeToTravelCurve = curveLength / speed;
+        float realTimeStep = Time.deltaTime;
+        float dt = realTimeStep / totalTimeToTravelCurve;
+        curveTime += dt;
 
-        if (curveProgress > 1.0f)
+        if (curveTime > 1.0f)
         {
-            curveProgress -= 1.0f;
+            curveTime -= 1.0f;
             cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomWalkBeta, randomWalkMean, randomWalkStd);
-            float length = cubicBezierCurve.GetLength(20);
-            dt = length / baseSpeed;
+            curveLength = cubicBezierCurve.GetLength(bezierLengthResolution);
         }
 
     }
