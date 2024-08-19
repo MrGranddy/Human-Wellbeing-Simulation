@@ -6,7 +6,6 @@ namespace MathUtils
     public class CubicBezierCurve
     {
         public Vector2 p0, p1, p2, p3;
-        private List<Vector2> segments;
 
         public CubicBezierCurve(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
         {
