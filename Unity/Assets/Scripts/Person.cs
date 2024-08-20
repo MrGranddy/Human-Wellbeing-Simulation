@@ -19,11 +19,10 @@ public class Person : MonoBehaviour
     private Vector2 position;
     private float curveTime;
 
-    private MathUtils.CubicBezierCurve cubicBezierCurve;
+    private MovementCurve movementCurve;
 
     private float simulationHeight;
     private float simulationWidth;
-    private float curveLength;
 
     private int bezierLengthResolution = 30;
 
@@ -42,15 +41,9 @@ public class Person : MonoBehaviour
         this.simulationWidth = simulationWidth;
 
         position = new Vector2(Random.Range(0, simulationWidth), Random.Range(0, simulationHeight));
-        curveTime = 0.0f;
 
-        Vector2 p0 = position;
-        Vector2 p1 = p0 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
-        Vector2 p2 = p1 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
-        Vector2 p3 = p2 + MathUtils.Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
-
-        cubicBezierCurve = new MathUtils.CubicBezierCurve(p0, p1, p2, p3);
-        curveLength = cubicBezierCurve.GetLength(bezierLengthResolution);
+        movementCurve = new MovementCurve(position, randomWalkMean, randomWalkStd, bezierLengthResolution);
+        
     }
 
     public void UpdateSimulationSize(float simulationWidth, float simulationHeight)

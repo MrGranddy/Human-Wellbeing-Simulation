@@ -40,56 +40,6 @@ namespace MathUtils
 
             return p0123;
         }
-
-        public void ReflectCurve(Flags.HitStatus side, float height, float width)
-        {
-            if (side == Flags.HitStatus.HitTop) // Top side
-            {
-                this.p0.y = 2 * height - this.p0.y;
-                this.p1.y = 2 * height - this.p1.y;
-                this.p2.y = 2 * height - this.p2.y;
-                this.p3.y = 2 * height - this.p3.y;
-            }
-            else if (side == Flags.HitStatus.HitRight) // Right side
-            {
-                this.p0.x = 2 * width - this.p0.x;
-                this.p1.x = 2 * width - this.p1.x;
-                this.p2.x = 2 * width - this.p2.x;
-                this.p3.x = 2 * width - this.p3.x;
-            }
-            else if (side == Flags.HitStatus.HitBottom) // Bottom side
-            {
-                this.p0.y = -this.p0.y;
-                this.p1.y = -this.p1.y;
-                this.p2.y = -this.p2.y;
-                this.p3.y = -this.p3.y;
-            }
-            else if (side == Flags.HitStatus.HitLeft) // Left side
-            {
-                this.p0.x = -this.p0.x;
-                this.p1.x = -this.p1.x;
-                this.p2.x = -this.p2.x;
-                this.p3.x = -this.p3.x;
-            }
-        }
-
-        public float GetLength(int numSamplePoints)
-        {
-            float length = 0.0f;
-            float dt = 1.0f / numSamplePoints;
-
-            Vector2 prevPoint = GetPoint(0.0f);
-
-            for (int i = 1; i <= numSamplePoints; i++)
-            {
-                Vector2 point = GetPoint(i * dt);
-                length += Vector2.Distance(prevPoint, point);
-                prevPoint = point;
-            }
-
-            return length;
-        }
-
         public static CubicBezierCurve GetRandomG1CubicBezier(MathUtils.CubicBezierCurve oldCurve, float beta, Vector2 mu, Vector2 std)
         {
             Vector2 p0 = oldCurve.p3;
