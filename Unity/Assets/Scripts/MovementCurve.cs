@@ -10,6 +10,23 @@ public class MovementCurve
     private int nSegments;
     private List<Vector2> segments;
 
+    public MovementCurve(Vector2 position, Vector2 randomWalkMean, Vector2 randomWalkStd, int nSegments)
+    {
+        Vector2 p0 = position;
+        Vector2 p1 = p0 + Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
+        Vector2 p2 = p1 + Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
+        Vector2 p3 = p2 + Statistics.GetRandomNormalVector2(randomWalkMean, randomWalkStd);
+
+        curve = new CubicBezierCurve(p0, p1, p2, p3);
+        curveTime = 0.0f;
+        this.nSegments = nSegments;
+        segments = new List<Vector2>();
+        for (int i = 0; i <= nSegments; i++)
+        {
+            segments.Add(curve.GetPoint((float)i / nSegments));
+        }
+    }
+
     public void ReflectCurve(Flags.HitStatus side, float height, float width)
     {
         if (side == Flags.HitStatus.HitTop) // Top side
@@ -40,5 +57,9 @@ public class MovementCurve
             curve.p2.x = -curve.p2.x;
             curve.p3.x = -curve.p3.x;
         }
+    }
+    public Vector2 GetPoint(float t)
+    {
+        return curve.GetPoint(t);
     }
 }

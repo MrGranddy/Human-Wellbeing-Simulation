@@ -55,26 +55,26 @@ public class Person : MonoBehaviour
     /// <summary> Randomly moves the person. </summary>
     public void Move(float randomWalkBeta, Vector2 randomWalkMean, Vector2 randomWalkStd, float speedCoefficient)
     {
-        position = cubicBezierCurve.GetPoint(curveTime);
+        position = movementCurve.GetPoint(curveTime);
 
         if (position.y > simulationHeight)
         {
-            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitTop, simulationHeight, simulationWidth);
+            movementCurve.ReflectCurve(Flags.HitStatus.HitTop, simulationHeight, simulationWidth);
         }
         if (position.x > simulationWidth)
         {
-            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitRight, simulationHeight, simulationWidth);
+            movementCurve.ReflectCurve(Flags.HitStatus.HitRight, simulationHeight, simulationWidth);
         }
         if (position.y < 0)
         {
-            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitBottom, simulationHeight, simulationWidth);
+            movementCurve.ReflectCurve(Flags.HitStatus.HitBottom, simulationHeight, simulationWidth);
         }
         if (position.x < 0)
         {
-            cubicBezierCurve.ReflectCurve(Flags.HitStatus.HitLeft, simulationHeight, simulationWidth);
+            movementCurve.ReflectCurve(Flags.HitStatus.HitLeft, simulationHeight, simulationWidth);
         }
 
-        position = cubicBezierCurve.GetPoint(curveTime);
+        position = movementCurve.GetPoint(curveTime);
 
         // Calculate dt such that the person has a constant speed in terms of simulation units / real seconds
         float speed = baseSpeed * speedCoefficient;
