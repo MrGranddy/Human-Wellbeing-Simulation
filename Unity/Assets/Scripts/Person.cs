@@ -55,7 +55,7 @@ public class Person : MonoBehaviour
     /// <summary> Randomly moves the person. </summary>
     public void Move(float randomWalkBeta, Vector2 randomWalkMean, Vector2 randomWalkStd, float speedCoefficient)
     {
-        position = movementCurve.GetPoint(curveTime);
+        position = movementCurve.GetPoint();
 
         if (position.y > simulationHeight)
         {
@@ -74,21 +74,9 @@ public class Person : MonoBehaviour
             movementCurve.ReflectCurve(Flags.HitStatus.HitLeft, simulationHeight, simulationWidth);
         }
 
-        position = movementCurve.GetPoint(curveTime);
+        position = movementCurve.GetPoint();
 
-        // Calculate dt such that the person has a constant speed in terms of simulation units / real seconds
-        float speed = baseSpeed * speedCoefficient;
-        float totalTimeToTravelCurve = curveLength / speed;
-        float realTimeStep = Time.deltaTime;
-        float dt = realTimeStep / totalTimeToTravelCurve;
-        curveTime += dt;
-
-        if (curveTime > 1.0f)
-        {
-            curveTime -= 1.0f;
-            cubicBezierCurve = MathUtils.CubicBezierCurve.GetRandomG1CubicBezier(cubicBezierCurve, randomWalkBeta, randomWalkMean, randomWalkStd);
-            curveLength = cubicBezierCurve.GetLength(bezierLengthResolution);
-        }
+        movementCurve.UpdateCurveTime(baseSpeed * speedCoefficient);
 
     }
 

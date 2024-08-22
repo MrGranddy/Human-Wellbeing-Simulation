@@ -58,8 +58,17 @@ public class MovementCurve
             curve.p3.x = -curve.p3.x;
         }
     }
-    public Vector2 GetPoint(float t)
+    public Vector2 GetPoint()
     {
-        return curve.GetPoint(t);
+        return curve.GetPoint(curveTime);
     }
+    public void UpdateCurveTime(float speed)
+    {
+        curveTime += speed;
+        if (curveTime > 1.0f)
+        {
+            curveTime = 0.0f;
+        }
+    }
+
 }
